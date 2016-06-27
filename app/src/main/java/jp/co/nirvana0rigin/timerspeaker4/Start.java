@@ -135,7 +135,7 @@ public class Start extends Fragment implements View.OnClickListener, P {
     //_________________________________________________for work on this Fragment
 
     public void startButtonStatus(){
-        if(P.Param.isRunning()) {
+        if(P.Param.isCounterRunning()) {
             start.setBackgroundResource(R.drawable.start_true);
             start.setText(R.string.stop);
             carAnimStart();
@@ -143,6 +143,9 @@ public class Start extends Fragment implements View.OnClickListener, P {
             carAnimStop();
             start.setBackgroundResource(R.drawable.start_false);
             start.setText(R.string.start);
+            if(anim.isRunning()) {
+                carAnimStop();
+            }
         }
     }
 
@@ -204,25 +207,16 @@ public class Start extends Fragment implements View.OnClickListener, P {
 
     @Override
     public void onClick(View v) {
-        Log.d("_____Start____","_______"+P.Param.isHalfwayStopped()+"______");
-        Log.d("_____Start____","_______"+P.Param.isReset()+"______");
-        Log.d("_____Start____","_______"+P.Param.isRunning()+"______");
         //スレッド生→生、タイマー止→生、
-        if (P.Param.isRunning()) {   //要は動作→一時停止
+        if (P.Param.isCounterRunning()) {   //要は動作→一時停止
             P.Param.setHalfwayStopped(true); //view
             P.Param.setReset(false); //thread
-            P.Param.setRunning(false);
-
         //スレッド生→生、タイマー止→生
         //スレッド死→生、タイマー止→生
         } else {               //要はSTART又はRESTART
             P.Param.setHalfwayStopped(false); //view
             P.Param.setReset(false); //thread
-            P.Param.setRunning(true);
         }
-        Log.d("_____Start____","_______"+P.Param.isHalfwayStopped()+"______");
-        Log.d("_____Start____","_______"+P.Param.isReset()+"______");
-        Log.d("_____Start____","_______"+P.Param.isRunning()+"______");
         startButtonStatus();
         onButtonPressed();
     }

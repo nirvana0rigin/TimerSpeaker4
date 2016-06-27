@@ -92,14 +92,16 @@ public class MainActivity
         super.onResume();
         Log.d("_____main onResume____","_______  ______");
         isPause = false;
-    	if(P.Param.isRunning()){
+    	if(P.Param.isCounterRunning()){
             startTimer();
     	}
     }
 
     @Override
     public void onPause() {
+        Log.d("_____main onPause____","_______  ______");
         isPause = true;
+        start.carAnimStop();
         doUnbindService();
         super.onPause();
     }
@@ -128,11 +130,6 @@ public class MainActivity
 
 
     //___________________________________________________for connection on Fragments
-
-    @Override
-    public void onConfig(){
-        //NOTHING
-    }
 
     @Override
     public void onConfigBackButton(){
@@ -167,9 +164,7 @@ public class MainActivity
 
     @Override
     public void onStartButton() {
-    	if(P.Param.isRunning()){
-            Log.d("_____START BUTTON____","_______in main______");
-            Log.d("_____Start____","_______"+P.Param.isRunning()+"______");
+    	if(P.Param.isCounterRunning()){
         	if(P.Param.isTimeUp()) {
         		P.Param.resetParam();
         	}
@@ -177,8 +172,6 @@ public class MainActivity
             goConfig.removeButton();
             reset.removeButton();
         }else{
-            Log.d("_____STOP BUTTON____","_______in main______");
-            Log.d("_____Start____","_______"+P.Param.isRunning()+"______");
         	stopTimer();
             reset.addButton();
         }
@@ -292,8 +285,10 @@ public class MainActivity
         int delay = P.Param.getDelay();
         TimeReceiver timeReceiver = new TimeReceiver();
         timeReceiver.execute(delay);
-        timer.speakMinute(START);
-        timer.startTimer();
+        if(!P.Param.isTimerRunning()) {
+            timer.speakMinute(START);
+            timer.startTimer();
+        }
     }
 
 	private void stopTimer(){
@@ -323,6 +318,7 @@ public class MainActivity
         protected Integer doInBackground(Integer... value) {
         	int delay = value[0];
         	if(delay != 0){
+                Log.d("_____async____","_______delay!=0______");
             	try {
                 	publishProgress(delay);
                 	Thread.sleep(delay);
@@ -330,17 +326,15 @@ public class MainActivity
                 	//NOTHING
             	}
             }
-            while (P.Param.isRunning()) {
+            while (P.Param.isCounterRunning()) {
                 try {
                     publishProgress(delay);
                     Thread.sleep(1000);
 
                     if (isPause) {
-                        Log.d("_____async_isPause____","_______while______");
                         break;
                     }
                     if(P.Param.isTimeUp()){
-                        Log.d("_____async_isAlr____","___"+P.Param.sec.get()+"___");
                         break;
                     }
                 } catch (InterruptedException e) {
@@ -352,7 +346,6 @@ public class MainActivity
 
         @Override
         protected void onProgressUpdate(Integer... progress) {
-            Log.d("_____async_onProg____","_______before re______");
             rewriteCounter();
         }
 

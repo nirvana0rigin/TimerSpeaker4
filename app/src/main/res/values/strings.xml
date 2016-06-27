@@ -22,20 +22,20 @@
     <string name="minute">分</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="reset">Reset</string>
-    <string name="start">Start</string>
-    <string name="stop">Stop</string>
-    <string name="config">Setting</string>
+    <string name="reset">リセット</string>
+    <string name="start">スタート</string>
+    <string name="stop">ストップ</string>
+    <string name="config">せってい</string>
     <string name="info">音声合成ソフトを入れてください</string>
     <string name="info2">英語でカウントします</string>
     <string name="info3">日本語も英語もダメです</string>
     <string name="info4">音声ソフト死んでます</string>
     <string name="min_lang_jp">、分</string>
-    <string name="min_lang_en">,minute</string>
+    <string name="min_lang_en">.Minute.</string>
     <string name="sec_lang_jp">、秒</string>
-    <string name="sec_lang_en">,seconds</string>
+    <string name="sec_lang_en">.Seconds.</string>
     <string name="start_jp">スタート</string>
-    <string name="start_en">start</string>
+    <string name="start_en">Start.</string>
 
     <string name="one_seconds">一秒</string>
     <string name="five_minute">5分</string>

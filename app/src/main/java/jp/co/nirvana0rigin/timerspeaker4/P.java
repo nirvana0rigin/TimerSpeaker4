@@ -6,6 +6,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public interface P {
 
+    /*
+    実装すべきメソッドはなし。
+    共通パラメーターを持つためのインターフェイス。
+     */
 
     static class Param implements Serializable {
 
@@ -21,8 +25,12 @@ public interface P {
 
         private static boolean halfwayStopped; //途中でストップ状態か否か
         private static boolean reset;  //リセット状態か否か。
-        private static boolean running;   //現在カウントが走っているか否か
+        private static boolean counterRunning;   //現在「外面上で」カウントが走るべきか否か
+        private static boolean timerRunning;  //現在「サービスで」カウントが走っているか否か
 
+
+
+        //___________________________________________________________for init
         static{
             carNo = 1;
             interval = 1;
@@ -35,7 +43,8 @@ public interface P {
 
             halfwayStopped = false;
             reset = true;
-            running = false;
+            counterRunning = false;
+            timerRunning = false;
         }
 
         public Param() {
@@ -50,9 +59,14 @@ public interface P {
 
             halfwayStopped = false;
             reset = true;
-            running = false;
+            counterRunning = false;
+            timerRunning = false;
         }
 
+
+
+
+        //___________________________________________________________for set&get
         public static int getCarNo() {
             return carNo;
         }
@@ -86,13 +100,10 @@ public interface P {
         public static void setHalfwayStopped(boolean x) {
             halfwayStopped = x;
             if (halfwayStopped) {
-                setRunning(false);
+                setCounterRunning(false);
+            }else if(!reset){
+                counterRunning = true;
             }
-            /*if (halfwayStopped == false && reset == false) {
-                running = true;
-            } else {
-                running = false;
-            }*/
         }
 
         public static boolean isReset() {
@@ -103,23 +114,31 @@ public interface P {
             reset = x;
             if (reset) {
                 setHalfwayStopped(false);
-                setRunning(false);
+                setCounterRunning(false);
+            }else if (!halfwayStopped) {
+                counterRunning = true;
             }
-            /*if (halfwayStopped == false && reset == false) {
-                running = true;
-            } else {
-                running = false;
-            }*/
         }
 
-        public static boolean isRunning() {
-            return running;
+        public static boolean isCounterRunning() {
+            return counterRunning;
         }
 
-        public static void setRunning(boolean x){
-            running = x;
+        public static void setCounterRunning(boolean x){
+            counterRunning = x;
         }
 
+        public static boolean isTimerRunning() {
+            return timerRunning;
+        }
+
+        public static void setTimerRunning(boolean x){
+            timerRunning = x;
+        }
+
+
+
+        //___________________________________________________________for other
         public static void resetParam() {
             setHalfwayStopped(false);
             setReset(true);

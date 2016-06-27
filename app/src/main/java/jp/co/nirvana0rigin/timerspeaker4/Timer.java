@@ -75,17 +75,20 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         future = scheduler.scheduleAtFixedRate(new Task(), 0, 10, TimeUnit.MILLISECONDS);
         setNotification();
+        P.Param.setTimerRunning(true);
     }
 
     public void stopTimer() {
         if (future != null) {
             future.cancel(true);
+            P.Param.setTimerRunning(false);
         }
     }
 
     public void endTimer() {
         if (scheduler != null) {
             scheduler.shutdownNow();
+            P.Param.setTimerRunning(false);
         }
     }
     
@@ -167,12 +170,20 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
         String time1;
         if (lang == 0) {
             if(m == 1000){
-                time = s + con.getString(R.string.sec_lang_jp);
+                if(P.Param.getInterval() != 1) {
+                    time = s + con.getString(R.string.sec_lang_jp);
+                }else{
+                    time = s + "";
+                }
             }else {
             	time1 = m + con.getString(R.string.min_lang_jp);
             	if(s != 0){
-            		time2 = s + con.getString(R.string.sec_lang_jp);
-            		time = time1 + time2; 
+                    time2 = s + con.getString(R.string.sec_lang_jp);
+                    if(m != 0) {
+                        time = time1 + time2;
+                    }else{
+                        time = time2;
+                    }
             	}else{
             		time = time1; 
             	}
@@ -184,7 +195,11 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
                 time1 = m + con.getString(R.string.min_lang_en);
             	if(s != 0){
             		time2 = s + con.getString(R.string.sec_lang_en);
-            		time = time1 + time2; 
+                    if(m != 0) {
+                        time = time1 + time2;
+                    }else{
+                        time = time2;
+                    }
             	}else{
             		time = time1; 
             	}
@@ -208,6 +223,11 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     }
 
     private void speak(String info){
+        if(P.Param.getInterval() != 1){
+            tts.setSpeechRate(1.0f);
+        }else{
+            tts.setSpeechRate(1.5f);
+        }
         if (android.os.Build.VERSION.SDK_INT >= 21) {
             tts.speak(info, TextToSpeech.QUEUE_FLUSH, null, "1");
         } else {

@@ -146,14 +146,7 @@ public class Config extends Fragment implements View.OnClickListener, P {
     //________________________________________________for connection on Activity
 
     public interface OnConfigListener {
-        public void onConfig();
         public void onConfigBackButton();
-    }
-
-    public void onButtonPressed() {
-        if (mListener != null) {
-            mListener.onConfig();
-        }
     }
 
 	public void onBackButtonPressed() {
