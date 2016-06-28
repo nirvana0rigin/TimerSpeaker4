@@ -30,12 +30,12 @@
     <string name="info2">英語でカウントします</string>
     <string name="info3">日本語も英語もダメです</string>
     <string name="info4">音声ソフト死んでます</string>
-    <string name="min_lang_jp">、分</string>
-    <string name="min_lang_en">.Minute.</string>
-    <string name="sec_lang_jp">、秒</string>
-    <string name="sec_lang_en">.Seconds.</string>
+    <string name="min_lang_jp">分</string>
+    <string name="min_lang_en">Minute</string>
+    <string name="sec_lang_jp">秒</string>
+    <string name="sec_lang_en">Seconds</string>
     <string name="start_jp">スタート</string>
-    <string name="start_en">Start.</string>
+    <string name="start_en">Start</string>
 
     <string name="one_seconds">一秒</string>
     <string name="five_minute">5分</string>

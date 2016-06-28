@@ -25,13 +25,13 @@ import java.util.Calendar;
 
 public class MainActivity
         extends AppCompatActivity
-        implements Config.OnConfigListener, GoConfig.OnGoConfigListener, Reset.OnResetListener, Start.OnStartListener, P {
+        implements GoConfig.OnGoConfigListener, Reset.OnResetListener, Start.OnStartListener, P {
 
-    private static Context con;
+    private Context con;
     private Resources res;
-    private Bundle b ;
+    private Bundle b;
     private FragmentManager fm;
-	private boolean isBound;
+    private boolean isBound;
     private static boolean isPause;
 
     private static Counter counter;
@@ -41,9 +41,9 @@ public class MainActivity
     private Reset reset;
     private Config config;
 
-    private Fragment[] fragments ;
+    private Fragment[] fragments;
     private int[] fragmentsID;
-    private String[] fragmentsTag = {"counter","info","start","reset","go_config"};
+    private String[] fragmentsTag = {"counter", "info", "start", "reset", "go_config"};
     /*
         0: counter
         1: info
@@ -53,16 +53,12 @@ public class MainActivity
      */
 
 
-
-
-
-
-
     //________________________________________________________for life cycles
 
     //リソース生成のみ
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("_____main onC____", "_______  ______");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -80,29 +76,39 @@ public class MainActivity
     @Override
     public void onStart() {
         super.onStart();
-        Log.d("_____main onStart____","_______  ______");
-        createMainFragments();
-        addMainFragments() ;
+        Log.d("_____main onStart____", "_______  ______");
+
         startService(new Intent(con, Timer.class));
         doBindService();
     }
 
-	@Override
+    @Override
     public void onResume() {
         super.onResume();
-        Log.d("_____main onResume____","_______  ______");
         isPause = false;
-    	if(P.Param.isCounterRunning()){
+        if (P.Param.isConfigMode()) {
+            Log.d("_____main onResume____", "_______config______");
+            removeMainFragments();
+        } else {
+            Log.d("_____main onResume____", "_______NOT config______");
+            createMainFragments();
+            addMainFragments();
+        }
+        if (P.Param.isCounterRunning()) {
             startTimer();
-    	}
+        }
     }
 
     @Override
     public void onPause() {
-        Log.d("_____main onPause____","_______  ______");
+        Log.d("_____main onPause____", "_______  ______");
         isPause = true;
-        start.carAnimStop();
-        doUnbindService();
+        if (P.Param.isConfigMode()) {
+            //NOTHING
+        } else {
+            start.carAnimStop();
+            doUnbindService();
+        }
         super.onPause();
     }
 
@@ -118,7 +124,7 @@ public class MainActivity
 
     @Override
     public void onDestroy() {
-    	Log.d("_______main_____","onD");
+        Log.d("_______main onD_____","_______   _______");
         super.onDestroy();
     }
 
@@ -128,27 +134,26 @@ public class MainActivity
 
 
 
-
     //___________________________________________________for connection on Fragments
-
-    @Override
-    public void onConfigBackButton(){
-        createMainFragments();
-        addMainFragments() ;
-    }
-
     @Override
     public void onGoConfig() {
+        Log.d("_______main onGoC_____","_______   _______");
         removeMainFragments();
+        if(isAlive("config")) {
+            Log.d("_____onGoC___","_______isA_____");
+            config.createConfig();
+        }
     }
 
     @Override
     public void onReset() {
 
         if (timer != null) {
+            doUnbindService();
+            stopService(new Intent(MainActivity.this, Timer.class));
             resetTimer();
         }
-        if( counter != null ){
+        if (counter != null) {
             counter.resetCounterText();
         }
         if (goConfig != null) {
@@ -164,16 +169,37 @@ public class MainActivity
 
     @Override
     public void onStartButton() {
-    	if(P.Param.isCounterRunning()){
-        	if(P.Param.isTimeUp()) {
-        		P.Param.resetParam();
-        	}
-            startTimer();
+        if (P.Param.isCounterRunning()) {
+            if (P.Param.isTimeUp()) {
+                P.Param.resetParam();
+            }
+            startService(new Intent(con, Timer.class));
+            doBindService();
             goConfig.removeButton();
             reset.removeButton();
-        }else{
-        	stopTimer();
+            startTimer();
+        } else {
             reset.addButton();
+            stopTimer();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d("___main onB__", "_____  ______");
+        if (0 == fm.getBackStackEntryCount()) {
+            super.onBackPressed();
+        } else {
+            Log.d("___main onB__", "_____ !0 ______");
+            if(P.Param.isConfigMode()) {
+                P.Param.setConfigMode(false);
+                super.onBackPressed();
+                createMainFragments();
+                addMainFragments();
+            }else{
+                Log.d("___main onB__", "_____ !0 finish______");
+                finish();
+            }
         }
     }
 
@@ -210,6 +236,8 @@ public class MainActivity
 
 
 
+
+
     //___________________________________________________________for work on Activity ____Fragments
 
     private void createMainFragments() {
@@ -233,10 +261,10 @@ public class MainActivity
     }
 
     private void addMainFragments(){
+        P.Param.setConfigMode(false);
         FragmentTransaction transaction = fm.beginTransaction();
         if(isAlive("config")){
             transaction.remove(config);
-            config = null;
         }
         for (int i = 0; i < 5; i++) {
             if (!isAlive(fragmentsTag[i])) {
@@ -247,23 +275,28 @@ public class MainActivity
     }
 
     private void removeMainFragments(){
+        Log.d("_____removeMainFra___","_______   _______");
+        P.Param.setConfigMode(true);
         FragmentTransaction transaction = fm.beginTransaction();
         for(int i=0; i<5; i++){
             if(isAlive(fragmentsTag[i]) ) {
-                transaction.remove(fragments[i]);
+                if(fragments[i] != null) {
+                    transaction.remove(fragments[i]);
+                }
             }
         }
         transaction.addToBackStack(null);
 
         if(!(isAlive("config")) ){
-            if(config ==null) {
-                config = new Config();
-            }
+            Log.d("_____removeMainFra___","_______ !isA  _______");
+            config = null;
+            config = new Config();
             transaction.add(R.id.config, config, "config");
         }else{
-            transaction.show(config);
+            //onGoConfigにてconfig.createConfig();
         }
         transaction.commit();
+
     }
 
     private boolean isAlive(String tag){
@@ -298,8 +331,6 @@ public class MainActivity
 	private void resetTimer(){
 		timer.endTimer();
 		P.Param.resetParam();
-        doUnbindService();
-		stopService(new Intent(MainActivity.this, Timer.class));
 	}
 
 	private void rewriteCounter(){

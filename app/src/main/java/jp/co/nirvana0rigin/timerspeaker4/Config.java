@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,14 +16,9 @@ import android.widget.Button;
 
 public class Config extends Fragment implements View.OnClickListener, P {
 
-	private Context con;
-    private Resources res;
-
     private Button[] cFlag = new Button[6];
     private Button[] iFlag = new Button[6];
     private Button[][] flag = {cFlag, iFlag};
-
-    private OnConfigListener mListener;
 
     private Button car1;
     private Button car2;
@@ -35,6 +31,8 @@ public class Config extends Fragment implements View.OnClickListener, P {
 
     private View v;
 
+    private Context con;
+    private Resources res;
 
 
 
@@ -59,13 +57,16 @@ public class Config extends Fragment implements View.OnClickListener, P {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d("_______main onCre_____","_______   _______");
         super.onCreate(savedInstanceState);
-        //NOTHING
+        con = getActivity().getApplicationContext();
+        res = getResources();
     }
 
     //Viewの生成のみ、表示はonStart
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        Log.d("_______main onCreV_____","_______   _______");
         v = inflater.inflate(R.layout.fragment_config, container, false);
 
         car1 = (Button) v.findViewById(R.id.car1);
@@ -96,17 +97,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
         Button[][] flag2 = {cFlag, iFlag};
         flag = flag2;
 
-        v.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-                    onBackButtonPressed();
-                    return true;
-                }
-                return false;
-            }
-        });
-
         return v;
     }
 
@@ -119,6 +109,7 @@ public class Config extends Fragment implements View.OnClickListener, P {
     //選択状況を表示
     @Override
     public void onStart() {
+        Log.d("_______main onS_____","_______   _______");
         super.onStart();
         setSelectColor();
     }
@@ -131,9 +122,13 @@ public class Config extends Fragment implements View.OnClickListener, P {
     */
 
     @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
 
@@ -144,29 +139,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
 
 
     //________________________________________________for connection on Activity
-
-    public interface OnConfigListener {
-        public void onConfigBackButton();
-    }
-
-	public void onBackButtonPressed() {
-        if (mListener != null) {
-            mListener.onConfigBackButton();
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            mListener = (OnConfigListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnConfigListener");
-        }
-        con = context.getApplicationContext();
-        res = getResources();
-    }
 
 
 
@@ -202,6 +174,7 @@ public class Config extends Fragment implements View.OnClickListener, P {
     }
 
     private void setSelectColor(){
+        Log.d("_____config___","_______S S____");
         setNotSelectColor();
         int carNo = P.Param.getCarNo();
         for(int i=0; i<2; i++) {
@@ -244,6 +217,10 @@ public class Config extends Fragment implements View.OnClickListener, P {
         }
     }
 
+    public void createConfig(){
+        Log.d("_____config___","_______C C____");
+        setSelectColor();
+    }
 
 
 }

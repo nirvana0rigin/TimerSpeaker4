@@ -1,5 +1,8 @@
 package jp.co.nirvana0rigin.timerspeaker4;
 
+import android.content.Context;
+import android.content.res.Resources;
+
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,8 +30,7 @@ public interface P {
         private static boolean reset;  //リセット状態か否か。
         private static boolean counterRunning;   //現在「外面上で」カウントが走るべきか否か
         private static boolean timerRunning;  //現在「サービスで」カウントが走っているか否か
-
-
+        private static boolean configMode;  //現在Config中か否か
 
         //___________________________________________________________for init
         static{
@@ -45,6 +47,7 @@ public interface P {
             reset = true;
             counterRunning = false;
             timerRunning = false;
+            configMode = false;
         }
 
         public Param() {
@@ -61,6 +64,7 @@ public interface P {
             reset = true;
             counterRunning = false;
             timerRunning = false;
+            configMode = false;
         }
 
 
@@ -136,7 +140,13 @@ public interface P {
             timerRunning = x;
         }
 
+        public static boolean isConfigMode() {
+            return configMode;
+        }
 
+        public static void setConfigMode(boolean x){
+            configMode = x;
+        }
 
         //___________________________________________________________for other
         public static void resetParam() {
