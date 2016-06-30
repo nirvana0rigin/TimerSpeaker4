@@ -35,11 +35,11 @@ public class MainActivity
     private static boolean isPause;
 
     private static Counter counter;
-    private Info info;
-    private Start start;
-    private GoConfig goConfig;
-    private Reset reset;
-    private Config config;
+    private static Info info;
+    private static Start start;
+    private static GoConfig goConfig;
+    private static Reset reset;
+    private static Config config;
 
     private Fragment[] fragments;
     private int[] fragmentsID;
@@ -58,7 +58,6 @@ public class MainActivity
     //リソース生成のみ
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("_____main onC____", "_______  ______");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -76,10 +75,6 @@ public class MainActivity
     @Override
     public void onStart() {
         super.onStart();
-        Log.d("_____main onStart____", "_______  ______");
-
-        startService(new Intent(con, Timer.class));
-        doBindService();
     }
 
     @Override
@@ -87,10 +82,8 @@ public class MainActivity
         super.onResume();
         isPause = false;
         if (P.Param.isConfigMode()) {
-            Log.d("_____main onResume____", "_______config______");
             removeMainFragments();
         } else {
-            Log.d("_____main onResume____", "_______NOT config______");
             createMainFragments();
             addMainFragments();
         }
@@ -101,7 +94,6 @@ public class MainActivity
 
     @Override
     public void onPause() {
-        Log.d("_____main onPause____", "_______  ______");
         isPause = true;
         if (P.Param.isConfigMode()) {
             //NOTHING
@@ -137,10 +129,8 @@ public class MainActivity
     //___________________________________________________for connection on Fragments
     @Override
     public void onGoConfig() {
-        Log.d("_______main onGoC_____","_______   _______");
         removeMainFragments();
         if(isAlive("config")) {
-            Log.d("_____onGoC___","_______isA_____");
             config.createConfig();
         }
     }
@@ -181,25 +171,19 @@ public class MainActivity
         } else {
             reset.addButton();
             stopTimer();
+            doUnbindService();
         }
     }
 
     @Override
     public void onBackPressed() {
-        Log.d("___main onB__", "_____  ______");
-        if (0 == fm.getBackStackEntryCount()) {
-            super.onBackPressed();
-        } else {
-            Log.d("___main onB__", "_____ !0 ______");
-            if(P.Param.isConfigMode()) {
-                P.Param.setConfigMode(false);
-                super.onBackPressed();
-                createMainFragments();
-                addMainFragments();
-            }else{
-                Log.d("___main onB__", "_____ !0 finish______");
-                finish();
-            }
+        if(P.Param.isConfigMode()) {
+            P.Param.setConfigMode(false);
+            //super.onBackPressed();
+            createMainFragments();
+            addMainFragments();
+        }else{
+            finish();
         }
     }
 
@@ -221,8 +205,10 @@ public class MainActivity
     };
 
     private void doBindService() {
-        bindService(new Intent(con, Timer.class), mConnection, Context.BIND_AUTO_CREATE);
-        isBound = true;
+        if(!isBound) {
+            bindService(new Intent(con, Timer.class), mConnection, Context.BIND_AUTO_CREATE);
+            isBound = true;
+        }
     }
 
     private void doUnbindService() {
@@ -263,40 +249,46 @@ public class MainActivity
     private void addMainFragments(){
         P.Param.setConfigMode(false);
         FragmentTransaction transaction = fm.beginTransaction();
-        if(isAlive("config")){
-            transaction.remove(config);
-        }
+
         for (int i = 0; i < 5; i++) {
             if (!isAlive(fragmentsTag[i])) {
                 transaction.add(fragmentsID[i], fragments[i], fragmentsTag[i]);
+            }else{
+                transaction.show(fragments[i]);
             }
+        }
+
+        if(isAlive("config")){
+            transaction.hide(config);
         }
         transaction.commit();
     }
 
     private void removeMainFragments(){
-        Log.d("_____removeMainFra___","_______   _______");
         P.Param.setConfigMode(true);
         FragmentTransaction transaction = fm.beginTransaction();
-        for(int i=0; i<5; i++){
-            if(isAlive(fragmentsTag[i]) ) {
-                if(fragments[i] != null) {
-                    transaction.remove(fragments[i]);
-                }
-            }
-        }
-        transaction.addToBackStack(null);
 
         if(!(isAlive("config")) ){
-            Log.d("_____removeMainFra___","_______ !isA  _______");
             config = null;
             config = new Config();
             transaction.add(R.id.config, config, "config");
         }else{
+            transaction.show(config);
             //onGoConfigにてconfig.createConfig();
         }
-        transaction.commit();
 
+        for(int i=0; i<5; i++){
+            if(isAlive(fragmentsTag[i]) ) {
+                if(fragments[i] != null) {
+                    transaction.hide(fragments[i]);
+                }
+            }else{
+                //NOTHING
+            }
+        }
+        //transaction.addToBackStack(null);
+
+        transaction.commit();
     }
 
     private boolean isAlive(String tag){
@@ -349,7 +341,6 @@ public class MainActivity
         protected Integer doInBackground(Integer... value) {
         	int delay = value[0];
         	if(delay != 0){
-                Log.d("_____async____","_______delay!=0______");
             	try {
                 	publishProgress(delay);
                 	Thread.sleep(delay);

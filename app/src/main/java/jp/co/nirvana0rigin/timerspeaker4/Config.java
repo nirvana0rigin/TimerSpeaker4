@@ -57,7 +57,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d("_______main onCre_____","_______   _______");
         super.onCreate(savedInstanceState);
         con = getActivity().getApplicationContext();
         res = getResources();
@@ -66,7 +65,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
     //Viewの生成のみ、表示はonStart
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-        Log.d("_______main onCreV_____","_______   _______");
         v = inflater.inflate(R.layout.fragment_config, container, false);
 
         car1 = (Button) v.findViewById(R.id.car1);
@@ -109,7 +107,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
     //選択状況を表示
     @Override
     public void onStart() {
-        Log.d("_______main onS_____","_______   _______");
         super.onStart();
         setSelectColor();
     }
@@ -174,7 +171,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
     }
 
     private void setSelectColor(){
-        Log.d("_____config___","_______S S____");
         setNotSelectColor();
         int carNo = P.Param.getCarNo();
         for(int i=0; i<2; i++) {
@@ -218,7 +214,6 @@ public class Config extends Fragment implements View.OnClickListener, P {
     }
 
     public void createConfig(){
-        Log.d("_____config___","_______C C____");
         setSelectColor();
     }
 
