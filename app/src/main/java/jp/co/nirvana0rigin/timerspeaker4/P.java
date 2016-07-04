@@ -32,6 +32,17 @@ public interface P {
         private static boolean timerRunning;  //現在「サービスで」カウントが走っているか否か
         private static boolean configMode;  //現在Config中か否か
 
+        public static Context con;
+        public static Resources res;
+        public  static boolean isBound;
+
+        public static final int BIND = 00;
+        public static final int UNBIND = 01;
+        public static final int START = 10;
+        public static final int STOP = 11;
+        public static final int RESET = 20;
+
+
         //___________________________________________________________for init
         static{
             carNo = 1;

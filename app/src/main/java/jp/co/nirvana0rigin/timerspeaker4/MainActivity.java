@@ -1,5 +1,6 @@
 package jp.co.nirvana0rigin.timerspeaker4;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -31,8 +32,7 @@ public class MainActivity
     private Resources res;
     private Bundle b;
     private FragmentManager fm;
-    private boolean isBound;
-    private static boolean isPause;
+    public static boolean isPause;
 
     private static Counter counter;
     private static Info info;
@@ -40,6 +40,7 @@ public class MainActivity
     private static GoConfig goConfig;
     private static Reset reset;
     private static Config config;
+    private static BindTimer bt;
 
     private Fragment[] fragments;
     private int[] fragmentsID;
@@ -52,7 +53,6 @@ public class MainActivity
         4: reset
      */
 
-
     //________________________________________________________for life cycles
 
     //リソース生成のみ
@@ -63,8 +63,12 @@ public class MainActivity
 
         res = getResources();
         con = getApplicationContext();
+        P.Param.con = con;
+        P.Param.res = getResources();
         b = savedInstanceState;
         fm = getSupportFragmentManager();
+        P.Param.isBound = false;
+        bt = new BindTimer(this);
 
         int[] fragmentsID2 = {R.id.counter, R.id.info, R.id.start, R.id.reset, R.id.go_config};
         fragmentsID = fragmentsID2;
@@ -75,11 +79,21 @@ public class MainActivity
     @Override
     public void onStart() {
         super.onStart();
+        startService(new Intent(con, Timer.class));
+        if(bt != null) {
+            bt.bindTimer(P.Param.BIND);
+        }else{
+            stopService(new Intent(MainActivity.this, Timer.class));
+            bt = new BindTimer(this);
+            startService(new Intent(con, Timer.class));
+            bt.bindTimer(P.Param.BIND);
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
         isPause = false;
         if (P.Param.isConfigMode()) {
             removeMainFragments();
@@ -88,24 +102,27 @@ public class MainActivity
             addMainFragments();
         }
         if (P.Param.isCounterRunning()) {
-            startTimer();
+            bt.bindTimer(P.Param.START);
         }
     }
 
     @Override
     public void onPause() {
         isPause = true;
-        if (P.Param.isConfigMode()) {
-            //NOTHING
-        } else {
-            start.carAnimStop();
-            doUnbindService();
-        }
         super.onPause();
     }
 
     @Override
     public void onStop() {
+        if (P.Param.isConfigMode()) {
+            //NOTHING
+        } else {
+            start.carAnimStop();
+            bt.bindTimer(P.Param.UNBIND);
+        }
+        if(P.Param.isReset()){
+            stopService(new Intent(MainActivity.this, Timer.class));
+        }
         super.onStop();
     }
 
@@ -137,12 +154,6 @@ public class MainActivity
 
     @Override
     public void onReset() {
-
-        if (timer != null) {
-            doUnbindService();
-            stopService(new Intent(MainActivity.this, Timer.class));
-            resetTimer();
-        }
         if (counter != null) {
             counter.resetCounterText();
         }
@@ -152,72 +163,38 @@ public class MainActivity
         if (reset != null) {
             reset.removeButton();
         }
-        if (reset != null) {
+        if (start != null) {
             start.startButtonStatus();
         }
     }
 
     @Override
-    public void onStartButton() {
-        if (P.Param.isCounterRunning()) {
+    public void onStartButton(Boolean isStop){
+        if(isStop){
+            reset.addButton();
+            bt.bindTimer(P.Param.STOP);
+        } else {
             if (P.Param.isTimeUp()) {
                 P.Param.resetParam();
             }
-            startService(new Intent(con, Timer.class));
-            doBindService();
-            goConfig.removeButton();
             reset.removeButton();
-            startTimer();
-        } else {
-            reset.addButton();
-            stopTimer();
-            doUnbindService();
+            goConfig.removeButton();
+            bt.bindTimer(P.Param.START);
         }
     }
 
     @Override
-    public void onBackPressed() {
+    public void onBackPressed() { //ハードのバックボタン
         if(P.Param.isConfigMode()) {
             P.Param.setConfigMode(false);
             //super.onBackPressed();
             createMainFragments();
             addMainFragments();
+            onReset();
         }else{
             finish();
         }
     }
-
-
-
-
-
-
-
-	//___________________________________________________for connection on Service
-    private static Timer timer;
-	private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            timer = ((Timer.TimerBinder) service).getService();
-        }
-        public void onServiceDisconnected(ComponentName className) {
-            timer = null;
-        }
-    };
-
-    private void doBindService() {
-        if(!isBound) {
-            bindService(new Intent(con, Timer.class), mConnection, Context.BIND_AUTO_CREATE);
-            isBound = true;
-        }
-    }
-
-    private void doUnbindService() {
-        if (isBound) {
-            unbindService(mConnection);
-            isBound = false;
-        }
-    }
-
 
 
 
@@ -305,74 +282,9 @@ public class MainActivity
 
 
 	//___________________________________________________________for work on Activity ____AsyncTask&TIMAR
-    private static final String START = "start";
-	private void startTimer(){
-        int delay = P.Param.getDelay();
-        TimeReceiver timeReceiver = new TimeReceiver();
-        timeReceiver.execute(delay);
-        if(!P.Param.isTimerRunning()) {
-            timer.speakMinute(START);
-            timer.startTimer();
-        }
-    }
-
-	private void stopTimer(){
-		timer.stopTimer();
-	}
-
-	private void resetTimer(){
-		timer.endTimer();
-		P.Param.resetParam();
-	}
-
-	private void rewriteCounter(){
+	public void rewriteCounter(){
 		counter.createCounterText();
 	}
-
-
-
-
-
-
-	//___________________________________________________________for work on Activity ____AsyncTask
-    private class TimeReceiver extends AsyncTask<Integer, Integer, Integer> {
-
-        @Override
-        protected Integer doInBackground(Integer... value) {
-        	int delay = value[0];
-        	if(delay != 0){
-            	try {
-                	publishProgress(delay);
-                	Thread.sleep(delay);
-            	} catch (InterruptedException e) {
-                	//NOTHING
-            	}
-            }
-            while (P.Param.isCounterRunning()) {
-                try {
-                    publishProgress(delay);
-                    Thread.sleep(1000);
-
-                    if (isPause) {
-                        break;
-                    }
-                    if(P.Param.isTimeUp()){
-                        break;
-                    }
-                } catch (InterruptedException e) {
-                    //NOTHING
-                }
-            }
-            return delay;
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... progress) {
-            rewriteCounter();
-        }
-
-    }
-
 
 
 

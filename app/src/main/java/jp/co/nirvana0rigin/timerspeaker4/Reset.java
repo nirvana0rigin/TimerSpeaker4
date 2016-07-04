@@ -101,7 +101,6 @@ public class Reset extends Fragment implements P {
 
     public interface OnResetListener {
         public void onReset();
-
     }
 
 

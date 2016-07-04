@@ -105,7 +105,7 @@ public class Start extends Fragment implements View.OnClickListener, P {
     //________________________________________________for connection on Activity
 
     public interface OnStartListener {
-        public void onStartButton();
+        public void onStartButton(Boolean isStop);
     }
 
     @Override
@@ -119,9 +119,9 @@ public class Start extends Fragment implements View.OnClickListener, P {
         }
     }
 
-    public void onButtonPressed() {
+    public void onButtonPressed(Boolean isStop) {
         if (mListener != null) {
-            mListener.onStartButton();
+            mListener.onStartButton(isStop);
         }
     }
 
@@ -140,12 +140,10 @@ public class Start extends Fragment implements View.OnClickListener, P {
             start.setText(R.string.stop);
             carAnimStart();
         }else{
-            carAnimStop();
             start.setBackgroundResource(R.drawable.start_false);
             start.setText(R.string.start);
-            if(anim.isRunning()) {
-                carAnimStop();
-            }
+            carAnimStop();
+            carImageReset();
         }
     }
 
@@ -194,7 +192,7 @@ public class Start extends Fragment implements View.OnClickListener, P {
         }
     }
 
-    private void carImageReset(){
+    public void carImageReset(){
         carView = null;
         carView = (ImageView) v.findViewById(R.id.car_img);
         int carNo = P.Param.getCarNo() ;
@@ -211,14 +209,18 @@ public class Start extends Fragment implements View.OnClickListener, P {
         if (P.Param.isCounterRunning()) {   //要は動作→一時停止
             P.Param.setHalfwayStopped(true); //view
             P.Param.setReset(false); //thread
+            boolean isStop = true;
+            onButtonPressed(isStop);
         //スレッド生→生、タイマー止→生
         //スレッド死→生、タイマー止→生
         } else {               //要はSTART又はRESTART
             P.Param.setHalfwayStopped(false); //view
             P.Param.setReset(false); //thread
+            boolean isStop = false;
+            onButtonPressed(isStop);
         }
         startButtonStatus();
-        onButtonPressed();
+
     }
 
 

@@ -24,6 +24,7 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     private Context con ;
     private Resources res ;
     private TextToSpeech tts ;
+    private static Notification.Builder builder;
 
 	//________________________________________________________for life cycles
     @Override
@@ -32,6 +33,7 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
         con = getApplicationContext();
         res = getResources();
         tts = new TextToSpeech(con, this);
+        builder = new Notification.Builder(this);
     }
 
     @Override
@@ -41,6 +43,8 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
 
     @Override
     public void onDestroy() {
+        Log.d("_______Timer onD_____","_______   _______");
+        serviceEnd();
         super.onDestroy();
     }
 
@@ -51,6 +55,7 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     }
 
 	private final IBinder timerBinder = new TimerBinder();
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -74,7 +79,8 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     public void startTimer() {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         future = scheduler.scheduleAtFixedRate(new Task(), 0, 10, TimeUnit.MILLISECONDS);
-        setNotification();
+        builderInit(builder);
+        setNotification(true);
         P.Param.setTimerRunning(true);
     }
 
@@ -88,6 +94,7 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     public void endTimer() {
         if (scheduler != null) {
             scheduler.shutdownNow();
+            setNotification(false);
             P.Param.setTimerRunning(false);
         }
     }
@@ -240,20 +247,24 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
 
 
 	//________________________________________________________on this service FOR UNDEAD
-    public void setNotification() {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pen = PendingIntent.getActivity(this, 0, intent, 0);
-
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setContentIntent(pen);
+    private void builderInit(Notification.Builder builder){
+        builder.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0));
         builder.setTicker(getText(R.string.app_name));
         builder.setSmallIcon(R.drawable.c01b);
         builder.setContentTitle(getText(R.string.app_name));
         builder.setContentText(getString(R.string.now_running));
         builder.setWhen(System.currentTimeMillis());
         builder.setAutoCancel(false);
+    }
+
+    private void setNotification(boolean isStart) {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify(1, builder.build());
+        if(isStart){
+            manager.notify(1, builder.build());
+        }else{
+            manager.cancel(1);
+        }
+
     }
 
 	

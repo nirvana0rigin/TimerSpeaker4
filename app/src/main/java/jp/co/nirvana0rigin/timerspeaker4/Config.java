@@ -164,6 +164,7 @@ public class Config extends Fragment implements View.OnClickListener, P {
 
         if(target==0){
             P.Param.setCarNo(choice);
+
         }else{
             P.Param.setInterval(choice);
         }
