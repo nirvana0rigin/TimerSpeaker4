@@ -106,6 +106,7 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
         if (scheduler != null) {
             scheduler.shutdownNow();
             setNotification(false);
+            wl.release();
             P.Param.setTimerRunning(false);
         }
     }
