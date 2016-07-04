@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.Toast;
@@ -25,7 +26,8 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     private Resources res ;
     private TextToSpeech tts ;
     private static Notification.Builder builder;
-
+    PowerManager pm ;
+    PowerManager.WakeLock wl;
 	//________________________________________________________for life cycles
     @Override
     public void onCreate() {
@@ -34,6 +36,8 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
         res = getResources();
         tts = new TextToSpeech(con, this);
         builder = new Notification.Builder(this);
+        pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "timer");
     }
 
     @Override
@@ -76,17 +80,24 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
 	private static ScheduledExecutorService scheduler;
     private static ScheduledFuture<?> future;
 
+
+
+
+
     public void startTimer() {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         future = scheduler.scheduleAtFixedRate(new Task(), 0, 10, TimeUnit.MILLISECONDS);
         builderInit(builder);
         setNotification(true);
+        long continueTime =  (long)P.Param.getTimeLeft() + 5*60*1000;
+        wl.acquire(continueTime);
         P.Param.setTimerRunning(true);
     }
 
     public void stopTimer() {
         if (future != null) {
             future.cancel(true);
+            wl.release();
             P.Param.setTimerRunning(false);
         }
     }

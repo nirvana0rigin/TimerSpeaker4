@@ -166,14 +166,19 @@ public interface P {
             sec.set(0);
         }
 
-        public static int getDelay() {
-            int spent;
+        public static int getTimeLeft() {
+            int tl;
             if (isEndS) {
-                spent = END_S - sec.get();
+                tl = END_S - sec.get();
             } else {
-                spent = END_L - sec.get();
+                tl = END_L - sec.get();
             }
-            int delay = (spent - ((spent / 100) * 100)) * 10;
+            return tl;
+        }
+
+        public static int getDelay() {
+            int tl = getTimeLeft();
+            int delay = (tl - ((tl / 100) * 100)) * 10;
             return delay;
         }
 
