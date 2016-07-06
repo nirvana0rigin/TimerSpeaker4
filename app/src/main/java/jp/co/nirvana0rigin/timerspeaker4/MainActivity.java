@@ -154,6 +154,9 @@ public class MainActivity
 
     @Override
     public void onReset() {
+        if ( bt != null) {
+            bt.bindTimer(P.Param.RESET);
+        }
         if (counter != null) {
             counter.resetCounterText();
         }

@@ -63,8 +63,9 @@ public class BindTimer
                 timer.endTimer();
                 P.Param.resetParam();
                 break;
+
             default:
-                Log.d("CASE","NO THING");
+                Log.d("___BindTimer___","______CASE   NO THING____");
         }
     }
 

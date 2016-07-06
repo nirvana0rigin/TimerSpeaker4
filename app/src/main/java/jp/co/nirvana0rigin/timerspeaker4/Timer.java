@@ -97,7 +97,9 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     public void stopTimer() {
         if (future != null) {
             future.cancel(true);
-            wl.release();
+            if(wl.isHeld()) {
+                wl.release();
+            }
             P.Param.setTimerRunning(false);
         }
     }
@@ -106,7 +108,9 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
         if (scheduler != null) {
             scheduler.shutdownNow();
             setNotification(false);
-            wl.release();
+            if(wl.isHeld()) {
+                wl.release();
+            }
             P.Param.setTimerRunning(false);
         }
     }
@@ -272,8 +276,10 @@ public class Timer extends Service implements TextToSpeech.OnInitListener, P {
     private void setNotification(boolean isStart) {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if(isStart){
+            Log.d("_____timer____","_____noice  true___");
             manager.notify(1, builder.build());
         }else{
+            Log.d("_____timer____","_____notice  false___");
             manager.cancel(1);
         }
 
